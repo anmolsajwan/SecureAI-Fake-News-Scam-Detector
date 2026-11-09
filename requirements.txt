@@ -4,3 +4,5 @@ matplotlib
 joblib
 streamlit
 pypdf
+pytesseract
+Pillow
