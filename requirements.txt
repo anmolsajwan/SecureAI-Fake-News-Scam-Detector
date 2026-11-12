@@ -1,9 +1,9 @@
+streamlit
 pandas
 scikit-learn
 matplotlib
 joblib
-streamlit
 pypdf
+pillow
 pytesseract
-Pillow
 google-genai
