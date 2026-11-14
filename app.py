@@ -260,13 +260,14 @@ html, body, [class*="css"] {
 
 }
 
-/* Floating SecureAI chat launcher */
-.st-key-secureai_chat_launcher {
-    position: fixed;
-    right: 26px;
-    bottom: 24px;
-    width: 64px;
-    z-index: 10001;
+/* Floating SecureAI chat launcher - slightly raised above the bottom banner */
+.st-key-secureai_chat_launcher,
+div[class*="st-key-secureai_chat_launcher"] {
+    position: fixed !important;
+    right: 16px !important;
+    bottom: 64px !important;
+    width: 64px !important;
+    z-index: 999999 !important;
 }
 
 .st-key-secureai_chat_launcher [data-testid="stButton"] > button {
@@ -282,14 +283,14 @@ html, body, [class*="css"] {
 }
 
 .st-key-secureai_chat_panel {
-    position: fixed;
-    right: 26px;
-    bottom: 98px;
+    position: fixed !important;
+    right: 16px !important;
+    bottom: 134px !important;
     width: 390px;
     max-width: calc(100vw - 32px);
-    max-height: min(76vh, 680px);
+    max-height: min(68vh, 620px);
     overflow-y: auto;
-    z-index: 10000;
+    z-index: 999998 !important;
     padding: 16px;
     background: #101A2D;
     border: 1px solid #6657B8;
@@ -303,17 +304,18 @@ html, body, [class*="css"] {
 }
 
 @media (max-width: 640px) {
-    .st-key-secureai_chat_launcher {
-        right: 14px;
-        bottom: 14px;
+    .st-key-secureai_chat_launcher,
+    div[class*="st-key-secureai_chat_launcher"] {
+        right: 12px !important;
+        bottom: 64px !important;
     }
 
     .st-key-secureai_chat_panel {
-        right: 10px;
-        bottom: 84px;
+        right: 8px !important;
+        bottom: 134px !important;
         width: calc(100vw - 20px);
         max-width: calc(100vw - 20px);
-        max-height: 72vh;
+        max-height: 62vh;
     }
 }
 
