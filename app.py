@@ -260,6 +260,63 @@ html, body, [class*="css"] {
 
 }
 
+/* Floating SecureAI chat launcher */
+.st-key-secureai_chat_launcher {
+    position: fixed;
+    right: 26px;
+    bottom: 24px;
+    width: 64px;
+    z-index: 10001;
+}
+
+.st-key-secureai_chat_launcher [data-testid="stButton"] > button {
+    width: 60px;
+    height: 60px;
+    min-height: 60px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 27px;
+    background: linear-gradient(135deg, #7657F5, #2878F5);
+    border: 1px solid #A89BFF;
+    box-shadow: 0 8px 24px rgba(38, 72, 180, .50);
+}
+
+.st-key-secureai_chat_panel {
+    position: fixed;
+    right: 26px;
+    bottom: 98px;
+    width: 390px;
+    max-width: calc(100vw - 32px);
+    max-height: min(76vh, 680px);
+    overflow-y: auto;
+    z-index: 10000;
+    padding: 16px;
+    background: #101A2D;
+    border: 1px solid #6657B8;
+    border-radius: 18px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .55);
+}
+
+.st-key-secureai_chat_panel [data-testid="stChatMessage"] {
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+@media (max-width: 640px) {
+    .st-key-secureai_chat_launcher {
+        right: 14px;
+        bottom: 14px;
+    }
+
+    .st-key-secureai_chat_panel {
+        right: 10px;
+        bottom: 84px;
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+        max-height: 72vh;
+    }
+}
+
 </style>
 
 """, unsafe_allow_html=True)
@@ -340,7 +397,7 @@ def generate_gemini_response(prompt, temperature=0.3):
 
             temperature=temperature,
 
-            max_output_tokens=1500,
+            max_output_tokens=500,
 
         ),
 
@@ -375,6 +432,10 @@ if "assistant_messages" not in st.session_state:
 if "active_scan_context" not in st.session_state:
 
     st.session_state.active_scan_context = ""
+
+if "chat_widget_open" not in st.session_state:
+
+    st.session_state.chat_widget_open = False
 
 # ================= GEMINI AI ANALYSIS =================
 
@@ -1227,6 +1288,103 @@ st.markdown("""
 
 """, unsafe_allow_html=True)
 
+# ================= FLOATING SECUREAI CHAT WIDGET =================
+
+# The chat icon is available on both Dashboard and SecureAI Chat pages.
+with st.container(key="secureai_chat_launcher"):
+
+    if st.button("💬", key="toggle_secureai_chat", help="Open SecureAI chatbot"):
+
+        st.session_state.chat_widget_open = not st.session_state.chat_widget_open
+
+        st.rerun()
+
+if st.session_state.chat_widget_open:
+
+    with st.container(key="secureai_chat_panel"):
+
+        title_col, close_col = st.columns([5, 1])
+
+        with title_col:
+
+            st.markdown("### 🛡️ SecureAI Chat")
+
+        with close_col:
+
+            if st.button("✕", key="close_secureai_chat", help="Close chat"):
+
+                st.session_state.chat_widget_open = False
+
+                st.rerun()
+
+        st.caption("Ask about scams, fake news, suspicious links, OTP safety or your latest scan.")
+
+        if st.session_state.active_scan_context:
+
+            st.caption("Latest scan context is available to the assistant.")
+
+        if st.session_state.assistant_messages:
+
+            for message in st.session_state.assistant_messages[-10:]:
+
+                with st.chat_message(message["role"]):
+
+                    st.markdown(message["content"])
+
+        else:
+
+            st.info("Hi! Ask SecureAI a cybersecurity question to get started.")
+
+        with st.form("secureai_chat_widget_form", clear_on_submit=True):
+
+            chat_prompt = st.text_input(
+
+                "Your message",
+
+                placeholder="Type your question...",
+
+                label_visibility="collapsed",
+
+            )
+
+            send_chat = st.form_submit_button("Send message", use_container_width=True)
+
+        if send_chat:
+
+            if chat_prompt.strip():
+
+                st.session_state.assistant_messages.append(
+
+                    {"role": "user", "content": chat_prompt.strip()}
+
+                )
+
+                with st.spinner("🤖 Gemini is thinking..."):
+
+                    chat_reply = get_chatbot_reply(chat_prompt.strip())
+
+                st.session_state.assistant_messages.append(
+
+                    {"role": "assistant", "content": chat_reply}
+
+                )
+
+                st.rerun()
+
+            else:
+
+                st.warning("Please type a message first.")
+
+        if st.session_state.assistant_messages:
+
+            if st.button("🗑️ Clear conversation", key="clear_secureai_widget_chat", use_container_width=True):
+
+                st.session_state.assistant_messages = []
+
+                st.session_state.active_scan_context = ""
+
+                st.rerun()
+
 # ================= DASHBOARD =================
 
 if st.session_state.page == "Dashboard":
@@ -1555,95 +1713,9 @@ else:
 
     st.divider()
 
-    # ================= GEMINI CHATBOT =================
+    if st.session_state.chat_history:
 
-    st.markdown("### 3. Ask SecureAI – AI Conversational Chatbot")
-
-    st.caption(
-
-        "Scan ke baare mein follow-up poochhein ya general "
-
-        "cybersecurity question karein. Gemini recent conversation "
-
-        "ko context ke roop mein use karega."
-
-    )
-
-    for message in st.session_state.assistant_messages:
-
-        with st.chat_message(message["role"]):
-
-            st.markdown(message["content"])
-
-    followup = st.chat_input(
-
-        "Ask a follow-up, e.g. 'Is message mein sabse bada risk kya hai?'",
-
-        key="secureai_followup_input",
-
-    )
-
-    if followup:
-
-        st.session_state.assistant_messages.append(
-
-            {
-
-                "role": "user",
-
-                "content": followup
-
-            }
-
-        )
-
-        with st.spinner("🤖 Gemini is thinking..."):
-
-            reply = get_chatbot_reply(followup)
-
-        st.session_state.assistant_messages.append(
-
-            {
-
-                "role": "assistant",
-
-                "content": reply
-
-            }
-
-        )
-
-        st.rerun()
-
-    # ================= CLEAR BUTTONS =================
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        if st.button(
-
-            "🗑️ Clear Conversation",
-
-            use_container_width=True
-
-        ):
-
-            st.session_state.assistant_messages = []
-
-            st.session_state.active_scan_context = ""
-
-            st.rerun()
-
-    with col2:
-
-        if st.button(
-
-            "🧹 Clear Scan History",
-
-            use_container_width=True
-
-        ):
+        if st.button("🧹 Clear Scan History", key="clear_scan_history", use_container_width=True):
 
             st.session_state.chat_history = []
 
